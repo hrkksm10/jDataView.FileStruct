@@ -18,7 +18,7 @@ class Foo extends FileStruct {
 
         return {
             file_size: {type: "Uint32"},
-            header: {type: amfID},
+            header: {type: header},
             params: {type: param, array: 16},
         };
     }
