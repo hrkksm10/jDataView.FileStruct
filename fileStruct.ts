@@ -18,7 +18,7 @@ class FileStruct {
         return {};
     }
 
-    readStruct(struct?): any {
+    readStruct(struct): any {
         if (!_.isObject(struct) || _.isFunction(struct)) {
 
             return struct;
@@ -72,7 +72,7 @@ class FileStruct {
     }
 
     // user defined
-    onRead() {}
+    onRead(): void {}
 
     private open(file: Blob, success: (self) => void, error?: (err) => void) {
         var reader = new FileReader();
