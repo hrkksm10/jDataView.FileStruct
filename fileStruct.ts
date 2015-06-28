@@ -1,5 +1,6 @@
 /// <reference path="refs/underscore.d.ts" />
 /// <reference path="refs/jdataview.d.ts" />
+declare var VBArray;
 
 class FileStruct {
 
@@ -13,12 +14,18 @@ class FileStruct {
         return instance;
     }
 
+    static openURL(...args: any[]) {
+        var instance = new this;
+        instance.openURL.apply(instance, args);
+        return instance;
+    }
+
     // user defined
     struct() {
         return {};
     }
 
-    readStruct(struct): any {
+    readStruct(struct?): any {
         if (!_.isObject(struct) || _.isFunction(struct)) {
 
             return struct;
@@ -72,20 +79,12 @@ class FileStruct {
     }
 
     // user defined
-    onRead(): void {}
+    onRead() {}
 
     private open(file: Blob, success: (self) => void, error?: (err) => void) {
         var reader = new FileReader();
         reader.onload = (ev: any) => {
-            try {
-                this.jdv = new jDataView(ev.target.result, void(0), void(0), this.littleEndian);
-                this.read();
-                success(this);
-            } catch (err) {
-                if (error) {
-                    error({errorType: 'parse', original: err});
-                }
-            }
+            this.openBuffer(ev.target.result, success, error);
         };
 
         reader.onerror = function (err) {
@@ -94,5 +93,37 @@ class FileStruct {
             }
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    private openURL(url: string, success: (self) => void, error?: (err) => void) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        if ('responseType' in xhr) {
+            xhr.responseType = 'arraybuffer';
+        }
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.response) {
+                    // IE10 over
+                    this.openBuffer(xhr.response, success, error);
+                } else if (xhr.responseBody !== undefined) {
+                    // IE9
+                    this.openBuffer(VBArray(xhr.responseBody).toArray(), success, error);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    private openBuffer(buffer: any, success: (self) => void, error?: (err) => void) {
+        try {
+            this.jdv = new jDataView(buffer, void(0), void(0), this.littleEndian);
+            this.read();
+            success(this);
+        } catch (err) {
+            if (error) {
+                error({errorType: 'parse', original: err});
+            }
+        }
     }
 }
