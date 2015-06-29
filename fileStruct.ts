@@ -4,7 +4,8 @@ declare var VBArray;
 
 class FileStruct {
 
-    littleEndian: boolean = false; // user defined
+    // user defined
+    littleEndian: boolean = false;
 
     private jdv: jDataView;
 
@@ -25,7 +26,7 @@ class FileStruct {
         return {};
     }
 
-    readStruct(struct?): any {
+    readStruct(struct?: any): any {
         if (!_.isObject(struct) || _.isFunction(struct)) {
 
             return struct;
@@ -79,7 +80,7 @@ class FileStruct {
     }
 
     // user defined
-    onRead() {}
+    onRead(): void {}
 
     private open(file: Blob, success: (self) => void, error?: (err) => void) {
         var reader = new FileReader();
@@ -97,7 +98,7 @@ class FileStruct {
 
     private openURL(url: string, success: (self) => void, error?: (err) => void) {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", url);
+        xhr.open("GET", url, true);
         if ('responseType' in xhr) {
             xhr.responseType = 'arraybuffer';
         }
@@ -106,7 +107,7 @@ class FileStruct {
                 if (xhr.response) {
                     // IE10 over
                     this.openBuffer(xhr.response, success, error);
-                } else if (xhr.responseBody !== undefined) {
+                } else if (xhr.responseBody !== void(0)) {
                     // IE9
                     this.openBuffer(VBArray(xhr.responseBody).toArray(), success, error);
                 }
