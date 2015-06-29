@@ -7,6 +7,8 @@ class FileStruct {
     // user defined
     littleEndian: boolean = false;
 
+    fileName: string;
+    fileSize: number;
     private jdv: jDataView;
 
     static open(...args: any[]) {
@@ -82,7 +84,9 @@ class FileStruct {
     // user defined
     onRead(): void {}
 
-    private open(file: Blob, success: (self) => void, error?: (err) => void) {
+    private open(file: File, success: (self) => void, error?: (err) => void) {
+        this.fileName = file.name;
+        this.fileSize = file.size;
         var reader = new FileReader();
         reader.onload = (ev: any) => {
             this.openBuffer(ev.target.result, success, error);
@@ -97,6 +101,7 @@ class FileStruct {
     }
 
     private openURL(url: string, success: (self) => void, error?: (err) => void) {
+        this.fileName = _.last(url.split('/'));
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         if ('responseType' in xhr) {
@@ -104,6 +109,7 @@ class FileStruct {
         }
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
+                this.fileSize = parseInt(xhr.getResponseHeader('Content-Length'));
                 if (xhr.response) {
                     // IE10 over
                     this.openBuffer(xhr.response, success, error);
