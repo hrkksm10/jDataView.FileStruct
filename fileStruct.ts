@@ -35,9 +35,10 @@ class FileStruct {
 
         } else if (struct["array"]) {
 
-            var n = struct["array"];
-            delete struct["array"];
-            return _.times(n, () => this.readStruct(struct));
+            var n = struct["array"],
+                clone_struct = _.clone(struct);
+            delete clone_struct["array"];
+            return _.times(n, () => this.readStruct(clone_struct));
 
         } else if (struct["type"]) {
 
