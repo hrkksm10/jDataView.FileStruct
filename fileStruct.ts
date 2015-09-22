@@ -1,4 +1,3 @@
-/// <reference path="refs/underscore.d.ts" />
 /// <reference path="refs/jdataview.d.ts" />
 declare var VBArray;
 
@@ -29,22 +28,27 @@ class FileStruct {
     }
 
     readStruct(struct?: any): any {
-        if (!_.isObject(struct) || _.isFunction(struct)) {
+        var st = typeof struct;
+        if (st === 'function' || !(st === 'object' && !!struct)) {
 
             return struct;
 
         } else if (struct['array']) {
 
-            var n = struct['array'],
-                clone_struct = _.clone(struct);
-            delete clone_struct['array'];
-            return _.times(n, () => this.readStruct(clone_struct));
+            var n = struct['array'], cloneStruct = {}, array = [];
+            for (var key in struct) if (key !== 'array') {
+                cloneStruct[key] = struct[key];
+            }
+            for (var i = 0; i < n; i++) {
+                array[i] = this.readStruct(cloneStruct);
+            }
+            return array;
 
         } else if (struct['type']) {
 
             var type = struct['type'];
 
-            if (_.isString(type)) {
+            if (typeof type === 'string') {
 
                 if (['String', 'Bytes'].indexOf(type) !== -1) {
 
@@ -62,7 +66,9 @@ class FileStruct {
         } else {
 
             var o = {};
-            _.each(struct, (v, k) => { o[k] = this.readStruct(v) });
+            for (var key in struct) {
+                o[key] = this.readStruct(struct[key]);
+            }
             return o;
 
         }
@@ -78,7 +84,9 @@ class FileStruct {
 
     private read() {
         var o = this.readStruct(this.struct());
-        _.each(o, (v, k) => { this[k] = v });
+        for (var key in o) {
+            this[key] = o[key];
+        }
         this.onRead();
     }
 
@@ -102,7 +110,8 @@ class FileStruct {
     }
 
     private openURL(url: string, success: (self) => void, error?: (err) => void) {
-        this.fileName = _.last(url.split('/'));
+        var urlArray = url.split('/');
+        this.fileName = urlArray[urlArray.length - 1];
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         if ('responseType' in xhr) {
