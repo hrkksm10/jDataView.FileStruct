@@ -22,6 +22,12 @@ class FileStruct {
         return instance;
     }
 
+    static openBuffer(...args: any[]) {
+        var instance = new this;
+        instance.openBuffer.apply(instance, args);
+        return instance;
+    }
+
     // user defined
     struct() {
         return {};
